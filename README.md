@@ -21,6 +21,21 @@ npm run build      # dist/ に静的ファイルを出力
 
 HashRouter と相対パス（`base: "./"`）を使っているので、`dist/` はどの静的ホスティングにもそのまま置けます。
 
+## Cloudflare へのデプロイ
+
+[Cloudflare Workers の静的アセット](https://developers.cloudflare.com/workers/static-assets/)として配信します。Worker スクリプトはなく、設定は `wrangler.jsonc` だけです。
+
+```bash
+npx wrangler login              # 初回のみ。ブラウザーで Cloudflare にログイン
+npm run preview:cloudflare      # ビルドして Cloudflare のランタイムでローカル配信（http://localhost:8787）
+npm run deploy                  # ビルドして本番にデプロイ（https://pi-learning.<アカウントのサブドメイン>.workers.dev）
+```
+
+- Worker 名は `wrangler.jsonc` の `name`（`pi-learning`）です。独自ドメインは Cloudflare のダッシュボードか `routes` の設定で追加します。
+- CI からデプロイする場合は、`CLOUDFLARE_API_TOKEN`（Workers の編集権限）と `CLOUDFLARE_ACCOUNT_ID` を環境変数に設定して `npm run deploy` を実行します。トークンはリポジトリにコミットしないでください。
+- `compatibility_date` は、固定している wrangler 4.149.0 のランタイムが対応する最新の日付にしています。wrangler を更新したら、この日付も見直してください。
+- ルーティングはすべて `/#/...` で完結するため、SPA 用のフォールバックは使っていません。存在しないファイルには 404 を返します。
+
 ## 構成
 
 - `src/lib/` — シミュレーターのロジック（テンプレート展開・スキル検証・エージェントループ・セッションツリー・RPC・コード生成）。UI から独立した純粋関数で、Vitest でテストしています。挙動は Pi のソース（`prompt-templates.ts`、`skills.ts`、`agent-loop.ts`、`package-manager.ts`）に合わせています。
