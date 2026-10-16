@@ -390,12 +390,21 @@ kbd {
     width: min(320px, 86vw);
     background: var(--bg);
     transform: translateX(-100%);
-    transition: transform 0.2s ease;
+    /* 閉じたサイドバーは visibility で隠し、キーボードのフォーカス順から外す。
+       スライドアウトが終わってから隠れるよう visibility の切り替えを遅らせる */
+    visibility: hidden;
+    transition:
+      transform 0.2s ease,
+      visibility 0s linear 0.2s;
     box-shadow: var(--shadow);
   }
 
   .sidebar.open {
     transform: translateX(0);
+    visibility: visible;
+    transition:
+      transform 0.2s ease,
+      visibility 0s linear 0s;
   }
 
   .sidebar-backdrop.open {
@@ -1638,6 +1647,13 @@ tr:last-child td {
   font-size: 13px;
   display: grid;
   gap: 2px;
+}
+
+fieldset.fs-tree {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
 }
 
 .fs-item {

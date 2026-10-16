@@ -93,7 +93,7 @@ function assistantTurn(userText: string | null, reply: string): RpcRecord[] {
   return records;
 }
 
-/** 進行中の実行を最後まで進める。steering → follow-up の順に取り込み、最後に agent_settled を出す。 */
+/** 進行中の実行を最後まで進める。すべての steering → すべての follow-up の順に取り込み、最後に agent_settled を出す。 */
 export function completeRun(state: RpcState): RpcStep {
   if (!state.isStreaming) return { state, records: [] };
   const records: RpcRecord[] = [
@@ -110,15 +110,17 @@ export function completeRun(state: RpcState): RpcStep {
   ];
   let next: RpcState = { ...state, messageCount: state.messageCount + 3 };
 
-  // steering はツール実行後・次の LLM 呼び出しの前に入る
-  if (next.steering.length > 0) {
-    const [first, ...rest] = next.steering;
-    next = { ...next, steering: rest };
-    records.push(queueUpdate(next), ...assistantTurn(first, "方針を変更して対応しました。"));
-  } else {
+  // steering はツール実行後・次の LLM 呼び出しの前に入る。
+  // steeringMode が one-at-a-time なので、1 件ずつ別のターンで取り込み、キューを空にする
+  if (next.steering.length === 0) {
     records.push(...assistantTurn(null, "ファイル一覧を確認しました。"));
+    next = { ...next, messageCount: next.messageCount + 1 };
   }
-  next = { ...next, messageCount: next.messageCount + 2 };
+  while (next.steering.length > 0) {
+    const [first, ...rest] = next.steering;
+    next = { ...next, steering: rest, messageCount: next.messageCount + 2 };
+    records.push(queueUpdate(next), ...assistantTurn(first, "方針を変更して対応しました。"));
+  }
 
   // follow-up はエージェントが止まろうとした時点で取り込まれる
   while (next.followUp.length > 0) {

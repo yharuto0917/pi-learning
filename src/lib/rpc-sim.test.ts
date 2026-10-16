@@ -42,6 +42,20 @@ describe("rpc-sim", () => {
     expect(done.state.followUp).toEqual([]);
   });
 
+  it("steer が複数あっても 1 件ずつ別のターンで取り込み、キューを空にする", () => {
+    let state = sendRpcLine(createRpcState(), '{"type":"prompt","message":"a"}').state;
+    state = sendRpcLine(state, '{"type":"steer","message":"first"}').state;
+    state = sendRpcLine(state, '{"type":"steer","message":"second"}').state;
+    const done = completeRun(state);
+    expect(done.state.steering).toEqual([]);
+    const injected = done.records
+      .filter((r) => r.json.type === "message_start")
+      .map((r) => (r.json.message as { content?: string }).content)
+      .filter((c) => c === "first" || c === "second");
+    expect(injected).toEqual(["first", "second"]);
+    expect(outTypes(done.records).filter((t) => t === "turn_start")).toHaveLength(2);
+  });
+
   it("abort は aborted: true の agent_settled を出してから応答する", () => {
     const running = sendRpcLine(createRpcState(), '{"type":"prompt","message":"a"}').state;
     const { records } = sendRpcLine(running, '{"type":"abort"}');
