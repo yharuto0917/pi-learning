@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // 静的アセットだけを配信する Worker（Worker スクリプトなし）
+  "name": "pi-learning",
+  // 固定した wrangler 4.149.0 のランタイムが対応する最新の日付（これより新しいと wrangler dev が起動しない）
+  "compatibility_date": "2026-10-13",
+  "assets": {
+    // npm run build の出力先
+    "directory": "./dist"
+    // ルーティングは HashRouter（/#/...）なので SPA 用のフォールバック（not_found_handling）は使わない。
+    // 存在しないファイルは 404 を返し、古いチャンクの読み込み失敗などを HTML でごまかさない
+  }
+}
