@@ -69,7 +69,7 @@ export function ModeFinder() {
       description="状況を選ぶと、適した使い方とコマンド例が表示されます。"
     >
       <div className="widget-grid">
-        <div className="fs-tree" role="listbox" aria-label="状況">
+        <fieldset className="fs-tree" aria-label="状況">
           {scenarios.map((s) => (
             <button
               key={s.id}
@@ -87,7 +87,7 @@ export function ModeFinder() {
               {s.situation}
             </button>
           ))}
-        </div>
+        </fieldset>
         <div>
           <div className="detail-card" style={{ marginBottom: 12 }}>
             <h4 style={{ fontFamily: "var(--font-sans)" }}>→ {scenario.mode}</h4>
